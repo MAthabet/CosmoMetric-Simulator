@@ -130,7 +130,7 @@ int main()
                 oss.clear();
 
                 text.setString("Orbital Velocity: " + vX + " , " + vY
-                   + "\n Mass: " + std::to_string(int(mass)) + "e24 kg"
+                   + "\n Mass: " + std::to_string(int(planets[size - 1]->getMass()/1e24)) + "e24 kg"
                    + "\n Radius: " + r + "e7 m");
                 window.draw(text);
             }
@@ -146,14 +146,15 @@ b2Vec2 calcGForce(const b2Body& body1, const b2Body& body2)
 {
     b2Vec2 pos1 = body1.GetPosition();
     b2Vec2 pos2 = body2.GetPosition();
-    float dx = (pos2.x - pos1.x);
-    float dy = (pos2.y - pos1.y);
+    float dx = SCALE * (pos2.x - pos1.x);
+    float dy = SCALE * (pos2.y - pos1.y);
 
     float distance = std::sqrt(dx * dx + dy * dy);
 
     float forceMag = 0;
+    
     if (distance != 0)
-        forceMag = G * body1.GetMass() * body2.GetMass() / (distance * distance);
+        forceMag = G * (body1.GetMass()/ distance) * (body2.GetMass() / distance);
 
     b2Vec2 force = forceMag * b2Vec2(dx / distance, dy / distance);
 

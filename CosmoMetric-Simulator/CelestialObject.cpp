@@ -35,8 +35,8 @@ float CelestialObject::distanceBetween(CelestialObject* other)
 void CelestialObject::setOrbitalVelocity(float starMass, float starX, float starY)
 {
 
-    double x = body->GetPosition().x - starX;
-    double y = body->GetPosition().y - starY;
+    double x = SCALE * body->GetPosition().x - starX;
+    double y = SCALE * body->GetPosition().y - starY;
 
     double r = std::sqrt(x * x + y * y);
 

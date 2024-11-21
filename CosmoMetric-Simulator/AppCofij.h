@@ -10,7 +10,7 @@
 //our length scale 1:1e7
 const float StarMass = 1.9891e30;
 const float StarRadius = 69.6265;
-
+const float SCALE = 3.5e8;
 // * 1.e24
 const float MAX_MASS = 1898;
 const float MIN_MASS = 0.0130;
@@ -18,8 +18,8 @@ const float MIN_MASS = 0.0130;
 //e28 to avoid too small radius
 const float AVG_PLANET_DENS = 2987.89e28;
 
-const float TIME_STEP = 1.0f / 60.0f;
+const float TIME_STEP = 1.0f / 30.0f;
 // Gscaled
-const float G = 8.5457e-31 /TIME_STEP/ TIME_STEP;
+const float G = 6.6743e-11 /TIME_STEP/ TIME_STEP;
 const int VELOCITY_ITERATIONS = 8;
 const int POSITION_ITERATIONS = 3;
