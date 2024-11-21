@@ -1,4 +1,6 @@
 #include "CelestialObject.h"
+#include <iomanip>
+#include <sstream>
 
 b2Vec2 calcGForce(const b2Body& body1, const b2Body& body2);
 sf::Color randColor();
@@ -9,7 +11,8 @@ int main()
     window.setFramerateLimit(60);
 
     srand(time(0));
-    // Creating world
+    std::ostringstream oss;
+    // Creating world with gravity 0
     b2World world(b2Vec2(0, 0));
 
     CelestialObject star(&world, 0, 0, StarMass, StarRadius);
@@ -20,6 +23,20 @@ int main()
     int size = 0;
 
     bool applayForceBetweenPlanets = true;
+
+    
+    sf::Font font;
+    if (!font.loadFromFile("./resources/rfont.ttf"))
+    {
+        printf("can not load font");
+    }
+    sf::Text text;
+    text.setFont(font);
+    text.setCharacterSize(50);
+    text.setFillColor(sf::Color::White);
+    text.setPosition(0, 0);
+    float radius = 0;
+    float mass = 0;
     // Run the program as long as the window is open
     while (window.isOpen())
     {
@@ -34,14 +51,13 @@ int main()
                 sf::Vector2i mousPos = sf::Mouse::getPosition(window);
                 // random radius causes errors in box2d body (inf dens)
                 // so used this to make radius more realistic
-                float radius = 0;
-                while (radius < StarRadius-10) //no reason for this 10 i just feel it :D
+                do 
                 {
-                    float mass = rand() % int(((MAX_MASS - MIN_MASS + 1) + MIN_MASS)) * 1e24;
-                    float radius = sqrt((AVG_PLANET_DENS / mass) / PI);
-                }
+                    mass = rand() % int(((MAX_MASS - MIN_MASS + 1) + MIN_MASS));
+                    radius = sqrt((AVG_PLANET_DENS / mass/1e24) / PI);
+                } while (radius > StarRadius - 10); //no reason for this 10 i just feel it :D
                 
-                CelestialObject* planet = new CelestialObject(&world, mousPos.x - WINDOW_W/2, WINDOW_H / 2 - mousPos.y , mass, radius);
+                CelestialObject* planet = new CelestialObject(&world, mousPos.x - WINDOW_W/2, WINDOW_H / 2 - mousPos.y , mass * 1e24, radius);
                 planet->setOrbitalVelocity(star.getMass());
                 planet->setGraphics(randColor());
                 planets.push_back(planet);
@@ -83,6 +99,29 @@ int main()
         for (int i = 0; i < size; i++)
         {
             window.draw(planets[i]->graphics);
+        }
+        {
+            if (size)
+            {
+                // to make texts more redable
+                oss << std::fixed << std::setprecision(2) << planets[size - 1]->getVelocity().x;
+                std::string vX = oss.str();
+                oss.str("");
+                oss.clear();
+                oss << std::fixed << std::setprecision(2) << planets[size - 1]->getVelocity().y;
+                std::string vY = oss.str();
+                oss.str("");
+                oss.clear();
+                oss << std::fixed << std::setprecision(2) << radius;
+                std::string r = oss.str();
+                oss.str("");
+                oss.clear();
+
+                text.setString("Last planet speed: " + vX + " , " + vY
+                   + "\n Mass: " + std::to_string(int(mass)) + "e24 kg"
+                   + "\n Radius: " + r + "e7 m");
+                window.draw(text);
+            }
         }
 
         window.draw(star.graphics);
