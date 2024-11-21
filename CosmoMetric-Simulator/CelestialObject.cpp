@@ -26,6 +26,12 @@ b2Vec2 CelestialObject::getVelocity()
     return body->GetLinearVelocity();
 }
 
+float CelestialObject::distanceBetween(CelestialObject* other)
+{
+    b2Vec2 dis = this->body->GetPosition() - other->body->GetPosition();
+    return std::sqrt(dis.x * dis.x + dis.y * dis.y);
+}
+
 void CelestialObject::setOrbitalVelocity(float starMass, float starX, float starY)
 {
 
@@ -47,16 +53,17 @@ CelestialObject::CelestialObject(b2World* world, float x, float y, double mass, 
 
     bodyDef.type = b2_dynamicBody;
     bodyDef.position.Set(x, y);
+    body = world->CreateBody(&bodyDef);
 
+
+
+    circle.m_radius = radius;
+    circle.m_p.Set(0, 0);
     fixture.shape = &circle;
+
     double area = PI * radius * radius;
     fixture.density = float(mass / area);
 
-
-    circle.m_p.Set(x, y);
-    circle.m_radius = radius;
-
-    body = world->CreateBody(&bodyDef);
     body->CreateFixture(&fixture);
     body->ResetMassData();
     graphics.setRadius(radius);

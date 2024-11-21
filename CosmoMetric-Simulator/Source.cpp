@@ -18,11 +18,12 @@ int main()
     CelestialObject star(&world, 0, 0, StarMass, StarRadius);
     star.setGraphics(sf::Color::Yellow);
     star.updateGrapicsPos();
-
+    b2Fixture* fixture = star.body->GetFixtureList();
+    fixture->SetSensor(true);
     std::vector<CelestialObject*> planets;
     int size = 0;
 
-    bool applayForceBetweenPlanets = true;
+    bool applayForceBetweenPlanets = false;
 
     
     sf::Font font;
@@ -67,9 +68,8 @@ int main()
         
         for (int i = 0; i < size; i++)
         {
-            b2Vec2 force;
-            CelestialObject* temp = planets[i];
-            force = calcGForce(*temp->body, *star.body);
+            CelestialObject* temp = planets[i]; 
+            b2Vec2 force = calcGForce(*temp->body, *star.body);
             if(applayForceBetweenPlanets)
             for (int j = 0; j < size; j++)
             {
@@ -96,12 +96,24 @@ int main()
             }
             window.draw(orbit);
         }
+        // detect if swallowed by sun
+        for (int i = 0; i < size; i++)
+        {
+            float r = star.graphics.getRadius() - planets[i]->graphics.getRadius();
+            if (planets[i]->distanceBetween(&star) < r)
+            {
+                delete planets[i];
+                planets.erase(planets.begin() + i);
+                size--;
+                i--;
+                printf("Planet Vanished\n");
+            }
+        }
         for (int i = 0; i < size; i++)
         {
             window.draw(planets[i]->graphics);
         }
-        {
-            if (size)
+        if (size)
             {
                 // to make texts more redable
                 oss << std::fixed << std::setprecision(2) << planets[size - 1]->getVelocity().x;
@@ -117,12 +129,11 @@ int main()
                 oss.str("");
                 oss.clear();
 
-                text.setString("Last planet speed: " + vX + " , " + vY
+                text.setString("Orbital Velocity: " + vX + " , " + vY
                    + "\n Mass: " + std::to_string(int(mass)) + "e24 kg"
                    + "\n Radius: " + r + "e7 m");
                 window.draw(text);
             }
-        }
 
         window.draw(star.graphics);
         window.display();
@@ -142,7 +153,7 @@ b2Vec2 calcGForce(const b2Body& body1, const b2Body& body2)
 
     float forceMag = 0;
     if (distance != 0)
-        forceMag = G * body1.GetMass() / distance * body2.GetMass() / distance;
+        forceMag = G * body1.GetMass() * body2.GetMass() / (distance * distance);
 
     b2Vec2 force = forceMag * b2Vec2(dx / distance, dy / distance);
 
