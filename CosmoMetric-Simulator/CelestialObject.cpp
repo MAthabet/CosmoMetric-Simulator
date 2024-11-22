@@ -8,7 +8,7 @@ void CelestialObject::setGraphics(sf::Color color)
 
 void CelestialObject::updateGrapicsPos()
 {
-    graphics.setPosition(WINDOW_W / 2 + body->GetPosition().x, WINDOW_H / 2 - body->GetPosition().y);
+    graphics.setPosition(VIEW_W / 2 + body->GetPosition().x, VIEW_H / 2 - body->GetPosition().y);
 }
 
 void CelestialObject::applyForce(const b2Vec2& force)

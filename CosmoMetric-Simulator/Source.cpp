@@ -7,14 +7,22 @@ sf::Color randColor();
 
 int main()
 {
-    sf::RenderWindow window(sf::VideoMode(WINDOW_W, WINDOW_H), "Solar System");
-    window.setFramerateLimit(60);
-
     srand(time(0));
     std::ostringstream oss;
+
+    sf::ContextSettings settings;
+    settings.antialiasingLevel = 8;
+
+    sf::RenderWindow window(sf::VideoMode(WINDOW_W, WINDOW_H), "Solar System", sf::Style::Default, settings);
+    window.setFramerateLimit(60);
+
+    sf::View view(sf::FloatRect(0.f, 0.f, VIEW_W, VIEW_H));
+    view.zoom(0.05);
+    window.setView(view);
+
     // Creating world with gravity 0
     b2World world(b2Vec2(0, 0));
-
+    // Star init
     CelestialObject star(&world, 0, 0, StarMass, StarRadius);
     star.setGraphics(sf::Color::Yellow);
     star.updateGrapicsPos();
@@ -24,7 +32,6 @@ int main()
     int size = 0;
 
     bool applayForceBetweenPlanets = false;
-
     
     sf::Font font;
     if (!font.loadFromFile("./resources/rfont.ttf"))
@@ -36,36 +43,71 @@ int main()
     text.setCharacterSize(50);
     text.setFillColor(sf::Color::White);
     text.setPosition(0, 0);
+
     float radius = 0;
     float mass = 0;
+    bool drag = false;
     // Run the program as long as the window is open
     while (window.isOpen())
     {
-        world.Step(TIME_STEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
         // Check for all window events
         sf::Event event;
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed)
                 window.close();
-            if (event.type == sf::Event::MouseButtonPressed)
+            else if (event.type == sf::Event::MouseButtonPressed)
             {
-                sf::Vector2i mousPos = sf::Mouse::getPosition(window);
+                window.setView(view);
+                sf::Vector2f pos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
                 // random radius causes errors in box2d body (inf dens)
                 // so used this to make radius more realistic
                 do 
                 {
                     mass = rand() % int(((MAX_MASS - MIN_MASS + 1) + MIN_MASS));
-                    radius = sqrt((AVG_PLANET_DENS / mass/1e24) / PI);
+                    radius = sqrt((AVG_PLANET_DENS / mass) / PI) * R_SCALE;
                 } while (radius > StarRadius - 10); //no reason for this 10 i just feel it :D
                 
-                CelestialObject* planet = new CelestialObject(&world, mousPos.x - WINDOW_W/2, WINDOW_H / 2 - mousPos.y , mass * 1e24, radius);
+                CelestialObject* planet = new CelestialObject(&world, pos.x - VIEW_W/2, VIEW_H/2 - pos.y , mass * 1e24, radius);
                 planet->setOrbitalVelocity(star.getMass());
                 planet->setGraphics(randColor());
                 planets.push_back(planet);
                 size++; //to fasten the proccess a bit
             }
+            else if (event.type == sf::Event::MouseWheelMoved) {
+                if (event.mouseWheel.delta == 1)
+                    view.zoom(0.9f);
+                else
+                    view.zoom(1.1f);
+            }
+            else if (event.type == sf::Event::KeyPressed)
+            {
+                if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+                {
+                    view.move(VIEW_delta, 0);
+                }
+                else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+                {
+                    view.move(-VIEW_delta, 0);
+                }
+                else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
+                {
+                    view.move(0 , -VIEW_delta);
+                }
+                else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down))
+                {
+                    view.move(0 , VIEW_delta);
+                }
+                else if (sf::Keyboard::isKeyPressed(sf::Keyboard::R))
+                {
+                    view.zoom(0.05);
+                }
+
+            }
         }
-        
+        b2Vec2 a;
+        if(size)
+         a = planets[0]->body->GetLinearVelocity();
+        world.Step(TIME_STEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
         for (int i = 0; i < size; i++)
         {
             CelestialObject* temp = planets[i]; 
@@ -80,8 +122,11 @@ int main()
             temp->applyForce(force);
             temp->updateGrapicsPos();
         }
-                
+        if (size)
+        a -= planets[0]->body->GetLinearVelocity();
+        printf("x = %f\n y= %f\n----------\n",a.x,a.y);
         window.clear();
+        window.setView(view);
         //orbit trail
         for (int i = 0; i < size; i++)
         {
@@ -113,6 +158,9 @@ int main()
         {
             window.draw(planets[i]->graphics);
         }
+        //printing data
+        window.draw(star.graphics);
+        window.setView(window.getDefaultView());
         if (size)
             {
                 // to make texts more redable
@@ -134,8 +182,6 @@ int main()
                    + "\n Radius: " + r + "e7 m");
                 window.draw(text);
             }
-
-        window.draw(star.graphics);
         window.display();
     }
 
