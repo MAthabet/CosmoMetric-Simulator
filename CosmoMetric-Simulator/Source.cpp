@@ -10,14 +10,22 @@ int main()
     srand(time(0));
     std::ostringstream oss;
 
+    sf::Image img;
+    if (!img.loadFromFile("./resources/space.png"))
+        return -1;
+    sf::Texture space;
+    space.loadFromImage(img);
+    sf::Sprite background;
+    background.setTexture(space);
+
     sf::ContextSettings settings;
     settings.antialiasingLevel = 8;
 
-    sf::RenderWindow window(sf::VideoMode(WINDOW_W, WINDOW_H), "Solar System", sf::Style::Default, settings);
+    sf::RenderWindow window(sf::VideoMode(WINDOW_W, WINDOW_H), "Star System", sf::Style::Default, settings);
     window.setFramerateLimit(60);
 
     sf::View view(sf::FloatRect(0.f, 0.f, VIEW_W, VIEW_H));
-    view.zoom(0.05);
+    view.zoom(0.7);
     window.setView(view);
 
     // Creating world with gravity 0
@@ -127,7 +135,7 @@ int main()
             // faking star Gravitational field
             if (planets[i]->distanceBetween(&star) < r)
             {
-                force = 2 * force;
+                force = 1.5 * force;
             }
             temp->applyForce(force);
             temp->updateGrapicsPos();
@@ -147,6 +155,7 @@ int main()
         }
         window.clear();
         window.setView(view);
+        window.draw(background);
         //draw
         {
             window.draw(StarGravityField);

@@ -6,8 +6,8 @@
 const int WINDOW_W = 1500;
 const int WINDOW_H = 927;
 
-const float VIEW_W = WINDOW_W * 10;
-const float VIEW_H = WINDOW_H * 10;
+const float VIEW_W = WINDOW_W * 2;
+const float VIEW_H = WINDOW_H * 2;
 const float VIEW_delta = 25;
 
 //TODO
@@ -17,7 +17,7 @@ const float R_SCALE = 1; // only affect visualization
 //sun radius 696265000 m
 const float StarMass = 1.9891e30;
 const float StarRadius = 69.6265 * R_SCALE;
-const float StarGF = StarRadius +20; // +r star exerts more force in this field
+const float StarGF = StarRadius +50; // star exerts more force in this field
 // * 1.e24
 const float MAX_MASS = 1898;
 const float MIN_MASS = 0.0130;
