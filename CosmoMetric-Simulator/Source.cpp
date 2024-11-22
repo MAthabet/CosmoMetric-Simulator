@@ -29,6 +29,11 @@ int main()
     b2Fixture* fixture = star.body->GetFixtureList();
     fixture->SetSensor(true);
     std::vector<CelestialObject*> planets;
+
+    sf::CircleShape StarGravityField(StarGF);
+    StarGravityField.setFillColor(sf::Color(255, 255, 0, 62));
+    StarGravityField.setOrigin(StarGF, StarGF);
+    StarGravityField.setPosition(star.graphics.getPosition());
     int size = 0;
 
     bool applayForceBetweenPlanets = false;
@@ -104,10 +109,9 @@ int main()
 
             }
         }
-        b2Vec2 a;
-        if(size)
-         a = planets[0]->body->GetLinearVelocity();
+        
         world.Step(TIME_STEP, VELOCITY_ITERATIONS, POSITION_ITERATIONS);
+
         for (int i = 0; i < size; i++)
         {
             CelestialObject* temp = planets[i]; 
@@ -119,29 +123,16 @@ int main()
                     continue;
                 force += calcGForce(*temp->body, *planets[j]->body);
             }
+            float r = StarGF + planets[i]->graphics.getRadius();
+            // faking star Gravitational field
+            if (planets[i]->distanceBetween(&star) < r)
+            {
+                force = 2 * force;
+            }
             temp->applyForce(force);
             temp->updateGrapicsPos();
         }
-        if (size)
-        a -= planets[0]->body->GetLinearVelocity();
-        printf("x = %f\n y= %f\n----------\n",a.x,a.y);
-        window.clear();
-        window.setView(view);
-        //orbit trail
-        for (int i = 0; i < size; i++)
-        {
-            CelestialObject* temp = planets[i];
-            temp->orbitPoints.push_back(temp->graphics.getPosition());
-            sf::VertexArray orbit(sf::LineStrip, temp->orbitPoints.size());
-            for (int j = 0; j < temp->orbitPoints.size(); j++)
-            {
-                orbit[j].position = temp->orbitPoints[j];
-                sf::Color trailColor = temp->graphics.getFillColor();
-                orbit[j].color = sf::Color(trailColor.r, trailColor.g, trailColor.b, 100);
-            }
-            window.draw(orbit);
-        }
-        // detect if swallowed by sun
+        // detect if swallowed by the star
         for (int i = 0; i < size; i++)
         {
             float r = star.graphics.getRadius() - planets[i]->graphics.getRadius();
@@ -154,14 +145,33 @@ int main()
                 printf("Planet Vanished\n");
             }
         }
-        for (int i = 0; i < size; i++)
+        window.clear();
+        window.setView(view);
+        //draw
         {
-            window.draw(planets[i]->graphics);
-        }
-        //printing data
-        window.draw(star.graphics);
-        window.setView(window.getDefaultView());
-        if (size)
+            window.draw(StarGravityField);
+            //orbit trail
+            for (int i = 0; i < size; i++)
+            {
+                CelestialObject* temp = planets[i];
+                temp->orbitPoints.push_back(temp->graphics.getPosition());
+                sf::VertexArray orbit(sf::LineStrip, temp->orbitPoints.size());
+                for (int j = 0; j < temp->orbitPoints.size(); j++)
+                {
+                    orbit[j].position = temp->orbitPoints[j];
+                    sf::Color trailColor = temp->graphics.getFillColor();
+                    orbit[j].color = sf::Color(trailColor.r, trailColor.g, trailColor.b, 100);
+                }
+                window.draw(orbit);
+            }
+            for (int i = 0; i < size; i++)
+            {
+                window.draw(planets[i]->graphics);
+            }
+            window.draw(star.graphics);
+            //printing data
+            window.setView(window.getDefaultView());
+            if (size)
             {
                 // to make texts more redable
                 oss << std::fixed << std::setprecision(2) << planets[size - 1]->getVelocity().x;
@@ -178,10 +188,11 @@ int main()
                 oss.clear();
 
                 text.setString("Orbital Velocity: " + vX + " , " + vY
-                   + "\n Mass: " + std::to_string(int(planets[size - 1]->getMass()/1e24)) + "e24 kg"
-                   + "\n Radius: " + r + "e7 m");
+                    + "\n Mass: " + std::to_string(int(planets[size - 1]->getMass() / 1e24)) + "e24 kg"
+                    + "\n Radius: " + r + "e7 m");
                 window.draw(text);
             }
+        }
         window.display();
     }
 

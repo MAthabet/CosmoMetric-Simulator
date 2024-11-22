@@ -17,6 +17,7 @@ const float R_SCALE = 1; // only affect visualization
 //sun radius 696265000 m
 const float StarMass = 1.9891e30;
 const float StarRadius = 69.6265 * R_SCALE;
+const float StarGF = StarRadius +20; // +r star exerts more force in this field
 // * 1.e24
 const float MAX_MASS = 1898;
 const float MIN_MASS = 0.0130;
