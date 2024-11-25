@@ -1,12 +1,23 @@
 #include "CelestialObject.h"
 #include <iomanip>
 #include <sstream>
+#include <SFML/Audio.hpp>
+
 
 b2Vec2 calcGForce(const b2Body& body1, const b2Body& body2);
 sf::Color randColor();
 
 int main()
 {
+    sf::Music music;
+    if (!music.openFromFile("./resources/bgMusic.mp3")) {
+        printf("Music is not loaded");
+    }
+
+    music.setLoop(true);
+    music.play();
+
+
     srand(time(0));
     std::ostringstream oss;
 
